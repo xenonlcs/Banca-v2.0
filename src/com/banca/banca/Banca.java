@@ -2,6 +2,10 @@ package com.banca.banca;
 
 import com.banca.accountable.Accountable;
 import com.banca.conti.*;
+import com.banca.exceptions.InvalidIbanException;
+import com.banca.exceptions.OperationNotAllowed;
+import com.banca.exceptions.WebException;
+import org.omg.CORBA.DynAnyPackage.Invalid;
 
 import java.util.HashMap;
 
@@ -9,12 +13,12 @@ import java.util.HashMap;
 public class Banca {
     String nome;
     HashMap<String, ContoInt> conti;
-    //int c;
+
 
     public Banca(String nome){
         this.nome = nome;
         conti = new HashMap<>();
-        //c=0;
+
     }
 
     public Conto aggiungiConto(String cf, ContoType type){
@@ -33,32 +37,60 @@ public class Banca {
             conto = null;
         }
 
-        //c++;
         return conto;
     }
 
-    public boolean operazione(String iban, double amount){
-        return conti.get(iban).operazione(amount);
+    private ContoInt getConto(String iban) throws InvalidIbanException{
+        if(conti.containsKey(iban)) return conti.get(iban);
+        else throw new InvalidIbanException("Conto non esistente");
     }
 
-    public boolean addAccountable(String iban, Accountable acc){
-        return conti.get(iban).addAccountable(acc);
+    public void operazione(String iban, double amount) throws OperationNotAllowed, WebException, InvalidIbanException{
+        ContoInt c = getConto(iban);
+        c.operazione(amount);
+
     }
 
-    public boolean login(String iban, String password){
-        ContoWeb cw = (ContoWeb) conti.get(iban);
-        return cw.login(password);
+    public void addAccountable(String iban, Accountable acc) throws OperationNotAllowed, InvalidIbanException {
+        ContoInt c = getConto(iban);
+        c.addAccountable(acc);
     }
 
-    public void fineMese(){
+    public boolean login(String iban, String password) throws InvalidIbanException, WebException{
+        ContoInt c = getConto(iban);
+        if(c instanceof  ContoWeb){
+            ContoWeb cw = (ContoWeb) c;
+            return cw.login(password);
+        }
+        return false;
+
+    }
+
+    public void fineMese() throws OperationNotAllowed, WebException{
         for (ContoInt conto:conti.values()) {
             conto.fineMese();
         }
     }
 
-    public boolean changePassword(String iban, String oldPassword, String newPassword){
-        ContoWeb cw = (ContoWeb) conti.get(iban);
-        return cw.setPassword(oldPassword, newPassword);
+    public void changePassword(String iban, String oldPassword, String newPassword)throws InvalidIbanException{
+        ContoInt c = getConto(iban);
+        if(c instanceof  ContoWeb){
+            ContoWeb cw = (ContoWeb) c;
+            cw.setPassword(oldPassword, newPassword);
+        }
+
+    }
+
+    public String toString() {
+        String s = "\nBanca " + nome + "\n";
+        s += "------------\n";
+        s += (conti==null?0:conti.size()) + " conti attivi\n";
+        s += "------------\n";
+        for (ContoInt c:conti.values()) {
+            s += c + "\n";
+        }
+        s += "------------\n";
+        return s + "\n";
     }
 
 }

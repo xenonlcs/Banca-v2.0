@@ -3,6 +3,8 @@ package com.banca.conti;
 
 import com.banca.accountable.Accountable;
 import com.banca.accountable.AccountableComparator;
+import com.banca.exceptions.OperationNotAllowed;
+import com.banca.exceptions.WebException;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -15,33 +17,28 @@ public class ContoCorrente extends Conto {
     }
 
     @Override
-    public boolean fineMese() {
+    public void fineMese() throws OperationNotAllowed, WebException {
         Collections.sort(accountables, new AccountableComparator());
         Collections.reverse(accountables);
 
         for(Accountable acc: accountables){
-            if(!operazione(acc.getAmount())){
-               return false;
-            }
-
+            operazione(acc.getAmount());
         }
-        return true;
+
     }
 
 
     @Override
-    public boolean operazione(double amount) {
+    public void operazione(double amount) throws OperationNotAllowed, WebException {
         // amount > 0 deposito, amount < 0 prelievo
 
         if(amount >= 0){
             saldo += amount;
-            return true;
         }else{
             if(saldo > Math.abs(amount)){
                 saldo -= Math.abs(amount);
-                return true;
             }else{
-                return false;
+                throw new OperationNotAllowed("Saldo insufficiente");
             }
         }
     }

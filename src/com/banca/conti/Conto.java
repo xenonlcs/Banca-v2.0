@@ -1,6 +1,8 @@
 package com.banca.conti;
 
 import com.banca.accountable.Accountable;
+import com.banca.exceptions.OperationNotAllowed;
+import com.banca.exceptions.WebException;
 
 import java.util.ArrayList;
 
@@ -17,9 +19,9 @@ public abstract class Conto implements ContoInt{
         this.iban = iban;
     }
 
-    public boolean addAccountable(Accountable acc){
+    public void addAccountable(Accountable acc) throws OperationNotAllowed{
         accountables.add(acc);
-        return true;
+
     }
 
     public String getIban(){
@@ -31,5 +33,11 @@ public abstract class Conto implements ContoInt{
     }
 
 
-    public abstract boolean fineMese();
+    public abstract void fineMese() throws OperationNotAllowed, WebException;
+
+    @Override
+    public String toString() {
+        return "iban: " + iban + ";" + "\tintestatario: " + cf
+                + ";" + "\tsaldo: " + saldo;
+    }
 }

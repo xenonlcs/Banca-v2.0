@@ -1,5 +1,8 @@
 package com.banca.conti;
 
+import com.banca.exceptions.OperationNotAllowed;
+import com.banca.exceptions.WebException;
+
 public class ContoWeb extends ContoCorrente {
 
     private String password;
@@ -13,16 +16,18 @@ public class ContoWeb extends ContoCorrente {
         password = "changeme";
     }
 
-    public boolean login(String password){
-        if(firstAccess){
+    public boolean login(String password) throws WebException{
+        /*if(firstAccess){
             setPassword("changeme", password);
             firstAccess = false;
-        }
+        }*/
         if(this.password.equals(password)){
             loggedIn = true;
             return true;
+        }else{
+            throw new WebException("Password errata");
         }
-        return false;
+
     }
 
     public boolean logout(){
@@ -33,17 +38,22 @@ public class ContoWeb extends ContoCorrente {
     public boolean setPassword(String oldPassword, String newPassword){
         if(oldPassword.equals(password)){
             password = newPassword;
+            firstAccess = false;
             return true;
         }
         return false;
     }
 
-    public boolean operazione(double amount){
+    public void operazione(double amount) throws OperationNotAllowed, WebException{
         if(loggedIn && !firstAccess){
             super.operazione(amount);
-            return true;
+        }else if(firstAccess){
+            throw new WebException("Devi cambiare la prima password");
         }
-        return false;
+        else{
+            throw new WebException("Devi prima effettuare l'accesso");
+        }
+
     }
 
 }
